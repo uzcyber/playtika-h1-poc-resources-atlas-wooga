@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Security Research PoC — HackerOne / Playtika</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 780px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fafafa;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e0e0e0; background: #0e0e0e; }
+    .banner { background: #3a2a00 !important; border-color: #886600 !important; color: #ffd966 !important; }
+    .box { background: #1a1a1a !important; border-color: #333 !important; }
+    code { background: #262626 !important; color: #ff8b6b !important; }
+  }
+  .banner {
+    background: #fff8dc;
+    border: 2px solid #d4a017;
+    color: #6b4c00;
+    padding: 16px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+  .box {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 24px; margin-bottom: 8px; }
+  h2 { font-size: 18px; margin-top: 24px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-family: Menlo, Monaco, monospace; font-size: 0.92em; color: #c0392b; }
+  dl dt { font-weight: 600; margin-top: 10px; }
+  dl dd { margin-left: 0; margin-bottom: 8px; color: #555; }
+  .muted { color: #777; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  ⚠️ This subdomain has been claimed by a security researcher as a proof-of-concept for an authorized HackerOne bug bounty submission. No malicious content is being served. This page will be removed as soon as Playtika / Wooga triages the report.
+</div>
+
+<div class="box">
+  <h1>Subdomain Takeover PoC — resources.atlas.wooga.com</h1>
+  <p class="muted">Non-destructive security research conducted under the <a href="https://hackerone.com/playtika">Playtika HackerOne Bug Bounty Program</a>.</p>
+
+  <h2>Finding</h2>
+  <dl>
+    <dt>Vulnerability</dt>
+    <dd>Subdomain takeover via dangling GitHub Pages CNAME (CWE-350)</dd>
+
+    <dt>Affected host</dt>
+    <dd><code>resources.atlas.wooga.com</code></dd>
+
+    <dt>Scope</dt>
+    <dd><code>*.wooga.com</code> (Playtika HackerOne in-scope wildcard asset)</dd>
+
+    <dt>Root cause</dt>
+    <dd>DNS A records point to GitHub Pages edge (<code>185.199.108-111.153</code>) while no GitHub repository owns the custom domain. The Wooga GitHub organization does not have <code>wooga.com</code> verified, allowing any third-party repo to claim the CNAME.</dd>
+
+    <dt>Proof</dt>
+    <dd>You are reading HTML served from a repository outside the <code>wooga</code> GitHub organization, via a GitHub-issued Let's Encrypt certificate for <code>resources.atlas.wooga.com</code>. This confirms successful hijack.</dd>
+  </dl>
+
+  <h2>Researcher</h2>
+  <dl>
+    <dt>HackerOne handle</dt>
+    <dd><a href="https://hackerone.com/cybersecuz">@cybersecuz</a></dd>
+
+    <dt>HackerOne report</dt>
+    <dd>(linked in the private report submitted to Playtika)</dd>
+
+    <dt>PoC deployed at</dt>
+    <dd><span id="deployedAt"></span></dd>
+
+    <dt>PoC contains</dt>
+    <dd>Static HTML only. No JavaScript runs outside this page. No cookies read/written. No external requests. No redirects. No forms. No tracking. No credential harvesting.</dd>
+  </dl>
+
+  <h2>Remediation (in priority order)</h2>
+  <ol>
+    <li>Remove the dangling A records for <code>resources.atlas.wooga.com</code> from the <code>wooga.com</code> authoritative zone.</li>
+    <li>Verify the <code>wooga.com</code> domain in the Wooga GitHub Organization (<code>Settings → Verified Domains</code>) to prevent re-exploitation across all <code>*.wooga.com</code> subdomains.</li>
+    <li>Audit CI/CD and build tooling (Atlas/Unity pipelines) for hardcoded references to <code>resources.atlas.wooga.com</code> and redirect them to a Wooga-controlled host.</li>
+  </ol>
+
+  <p class="muted" style="margin-top: 30px;">
+    Contact Playtika Security at <a href="mailto:security@playtika.com">security@playtika.com</a> or via the HackerOne program to confirm this PoC should be taken down.
+  </p>
+</div>
+
+<script>
+  // Local-only timestamp, no external calls
+  var el = document.getElementById('deployedAt');
+  if (el) { el.textContent = new Date().toISOString(); }
+</script>
+
+</body>
+</html>
